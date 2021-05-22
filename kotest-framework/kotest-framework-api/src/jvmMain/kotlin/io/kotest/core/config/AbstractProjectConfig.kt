@@ -72,6 +72,12 @@ abstract class AbstractProjectConfig {
    open val invocationTimeout: Long? = null
 
    /**
+    * A timeout that is applied to the overall project if not null,
+    * if the sum duration of all the tests exceeds this the suite will fail.
+    */
+   open val projectTimeout: ProjectTimeout? = null
+
+   /**
     * The parallelism factor determines how many threads are used to launch tests.
     *
     * The tests inside the same spec are always executed using the same thread, to ensure
