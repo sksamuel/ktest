@@ -2,6 +2,7 @@ package io.kotest.engine
 
 import io.kotest.core.Tags
 import io.kotest.core.config.configuration
+import io.kotest.core.extensions.ProjectExtension
 import io.kotest.core.filter.SpecFilter
 import io.kotest.core.filter.TestFilter
 import io.kotest.core.spec.Spec
@@ -79,6 +80,8 @@ class KotestEngine(private val config: KotestEngineConfig) {
 
    private suspend fun executeTestSuite(suite: TestSuite, listener: TestEngineListener): EngineResult {
 
+      val projectExtensions = configuration.extensions().filterIsInstance<ProjectExtension>().reversed()
+
       val beforeErrors = notifyListenerEngineStarted(suite, listener)
          .flatMap { configuration.listeners().beforeProject() }
          .fold({ listOf(it) }, { it })
@@ -94,6 +97,19 @@ class KotestEngine(private val config: KotestEngineConfig) {
       // after project listeners are executed even if the submission fails and the errors are added together
       val afterErrors = configuration.listeners().afterProject().getOrElse { emptyList() }
       return EngineResult(listOfNotNull(submissionError) + afterErrors)
+   }
+
+   private tailrec suspend fun runProjectExtensions(extensions: List<ProjectExtension>, f: suspend () -> Unit) {
+      if (extensions.isEmpty())
+         f()
+      else {
+         val head = extensions.first()
+         val tail = extensions.drop(1)
+
+         runProjectExtensions(tail) {
+            head.aroundProject(f)
+         }
+      }
    }
 
    fun cleanup() {
