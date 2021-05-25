@@ -9,12 +9,7 @@ import io.kotest.core.spec.Spec
 import io.kotest.core.spec.afterProject
 import io.kotest.core.spec.beforeProject
 import io.kotest.engine.config.ConfigManager
-import io.kotest.engine.extensions.DumpConfigExtension
-import io.kotest.engine.extensions.EmptyTestSuiteExtension
-import io.kotest.engine.extensions.EngineExtension
-import io.kotest.engine.extensions.KotestPropertiesExtension
-import io.kotest.engine.extensions.SpecifiedTagsTagExtension
-import io.kotest.engine.extensions.TestDslStateExtensions
+import io.kotest.engine.extensions.*
 import io.kotest.engine.launchers.specLauncher
 import io.kotest.engine.listener.TestEngineListener
 import io.kotest.engine.script.ScriptExecutor
@@ -80,8 +75,6 @@ class KotestEngine(private val config: KotestEngineConfig) {
 
    private suspend fun executeTestSuite(suite: TestSuite, listener: TestEngineListener): EngineResult {
 
-      val projectExtensions = configuration.extensions().filterIsInstance<ProjectExtension>().reversed()
-
       val beforeErrors = notifyListenerEngineStarted(suite, listener)
          .flatMap { configuration.listeners().beforeProject() }
          .fold({ listOf(it) }, { it })
@@ -92,15 +85,22 @@ class KotestEngine(private val config: KotestEngineConfig) {
       if (allErrors.isNotEmpty())
          return EngineResult(allErrors)
 
-      val submissionError = submitAll(suite, listener).errorOrNull()
+      val projectExtensions = configuration.extensions().filterIsInstance<ProjectExtension>()
+      val projectErrors = mutableListOf<Throwable>()
+      runProjectExtensions(projectExtensions, projectErrors) {
+         val submissionError = submitAll(suite, listener).errorOrNull()
+         if (submissionError != null) {
+            projectErrors.add(submissionError)
+         }
+      }
 
       // after project listeners are executed even if the submission fails and the errors are added together
       val afterErrors = configuration.listeners().afterProject().getOrElse { emptyList() }
-      return EngineResult(listOfNotNull(submissionError) + afterErrors)
+      return EngineResult(projectErrors + afterErrors)
    }
 
    private tailrec suspend fun runProjectExtensions(extensions: List<ProjectExtension>, errors: MutableList<Throwable>, f: suspend () -> Unit) {
-      if (extensions.isEmpty())
+      return if (extensions.isEmpty())
          f()
       else {
          val head = extensions.first()

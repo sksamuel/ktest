@@ -13,18 +13,24 @@ import io.kotest.matchers.shouldBe
 
 @Isolate
 class ProjectExtensionExceptionTest : FunSpec({
+   val listExtensionEvents = mutableListOf<String>()
+
    val extensions = listOf(
       object : ProjectExtension {
-         override suspend fun aroundProject(project: suspend () -> Unit) { listExtensionEvents.add("hello"); project() }
+         val name = "hello"
+         override suspend fun aroundProject(project: suspend () -> Unit) { listExtensionEvents.add(name); project() }
       },
       object : ProjectExtension {
-         override suspend fun aroundProject(project: suspend () -> Unit) { listExtensionEvents.add("q"); project() }
+         val name = "q"
+         override suspend fun aroundProject(project: suspend () -> Unit) { listExtensionEvents.add(name); project() }
       },
       object : ProjectExtension {
-         override suspend fun aroundProject(project: suspend () -> Unit) { project(); throw ProjectExtensionThrowable("mon") }
+         val name = "mon"
+         override suspend fun aroundProject(project: suspend () -> Unit) { project(); throw ProjectExtensionThrowable(name) }
       },
       object : ProjectExtension {
-         override suspend fun aroundProject(project: suspend () -> Unit) { project(); throw ProjectExtensionThrowable("capitaine!") }
+         val name = "capitaine!"
+         override suspend fun aroundProject(project: suspend () -> Unit) { project(); throw ProjectExtensionThrowable(name) }
       }
    )
 
