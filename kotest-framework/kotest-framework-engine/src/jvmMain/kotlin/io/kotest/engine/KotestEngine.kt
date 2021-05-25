@@ -99,15 +99,19 @@ class KotestEngine(private val config: KotestEngineConfig) {
       return EngineResult(listOfNotNull(submissionError) + afterErrors)
    }
 
-   private tailrec suspend fun runProjectExtensions(extensions: List<ProjectExtension>, f: suspend () -> Unit) {
+   private tailrec suspend fun runProjectExtensions(extensions: List<ProjectExtension>, errors: MutableList<Throwable>, f: suspend () -> Unit) {
       if (extensions.isEmpty())
          f()
       else {
          val head = extensions.first()
          val tail = extensions.drop(1)
 
-         runProjectExtensions(tail) {
-            head.aroundProject(f)
+         runProjectExtensions(tail, errors) {
+            try {
+                head.aroundProject(f)
+            } catch (e: Throwable) {
+               errors.add(e)
+            }
          }
       }
    }
