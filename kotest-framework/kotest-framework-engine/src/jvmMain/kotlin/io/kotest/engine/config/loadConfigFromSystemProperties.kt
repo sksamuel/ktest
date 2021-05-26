@@ -1,8 +1,8 @@
 package io.kotest.engine.config
 
+import io.kotest.core.internal.KotestEngineProperties
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.test.AssertionMode
-import io.kotest.core.internal.KotestEngineProperties
 import io.kotest.core.test.DuplicateTestNameMode
 import io.kotest.fp.Option
 import io.kotest.fp.toOption
@@ -40,6 +40,9 @@ internal fun testNameAppendTags(): Option<Boolean> =
 internal fun duplicateTestNameMode(): Option<DuplicateTestNameMode> =
    sysprop(KotestEngineProperties.testNameAppendTags).toOption().map { DuplicateTestNameMode.valueOf(it) }
 
+internal fun projectTimeout(): Option<Long> =
+   sysprop(KotestEngineProperties.projectTimeout).toOption().map { it.toLong() }
+
 /**
  * Returns a [DetectedProjectConfig] which is built from system properties where supported.
  */
@@ -56,5 +59,6 @@ internal fun loadConfigFromSystemProperties(): DetectedProjectConfig {
       globalAssertSoftly = globalAssertSoftly(),
       testNameAppendTags = testNameAppendTags(),
       duplicateTestNameMode = duplicateTestNameMode(),
+      projectTimeout = projectTimeout(),
    )
 }
