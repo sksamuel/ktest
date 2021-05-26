@@ -17,21 +17,18 @@ class ProjectExtensionExceptionTest : FunSpec({
 
    val extensions = listOf(
       object : ProjectExtension {
-         val name = "hello"
-         override suspend fun aroundProject(project: suspend () -> Unit) { listExtensionEvents.add(name); project() }
+         val name = "hello q"
+         override suspend fun aroundProject(callback: suspend () -> Throwable?): Throwable? {
+            listExtensionEvents.add(name)
+            return callback()
+         }
       },
       object : ProjectExtension {
-         val name = "q"
-         override suspend fun aroundProject(project: suspend () -> Unit) { listExtensionEvents.add(name); project() }
+         val name = "mon capitaine!"
+         override suspend fun aroundProject(callback: suspend () -> Throwable?): Throwable? {
+            callback(); return ProjectExtensionThrowable(name)
+         }
       },
-      object : ProjectExtension {
-         val name = "mon"
-         override suspend fun aroundProject(project: suspend () -> Unit) { project(); throw ProjectExtensionThrowable(name) }
-      },
-      object : ProjectExtension {
-         val name = "capitaine!"
-         override suspend fun aroundProject(project: suspend () -> Unit) { project(); throw ProjectExtensionThrowable(name) }
-      }
    )
 
    beforeSpec {
@@ -58,12 +55,10 @@ class ProjectExtensionExceptionTest : FunSpec({
 
       KotestEngineLauncher().withListener(listener).withSpec(PassingProjectTest::class).launch()
 
-      withClue("""
-               the test engine should report errors from project extension interceptors
-               and an exception in one or more interceptors should not prevent another from running
-               and the order the interceptors are executed is not guaranteed
+      withClue("""the test engine should report errors from project extension interceptors
+         and the order the interceptors are executed is not guaranteed
       """.trimIndent()) {
-         listExtensionEvents + errors.map { it.message } shouldContainExactlyInAnyOrder listOf("hello", "q", "mon", "capitaine!")
+         listExtensionEvents + errors.map { it.message } shouldContainExactlyInAnyOrder listOf("hello q", "mon capitaine!")
       }
    }
 })
