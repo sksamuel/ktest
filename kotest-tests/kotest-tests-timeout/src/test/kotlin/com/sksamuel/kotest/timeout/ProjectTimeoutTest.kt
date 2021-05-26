@@ -1,8 +1,8 @@
 package com.sksamuel.kotest.timeout
 
-import io.kotest.core.annotation.Ignored
 import io.kotest.core.config.configuration
 import io.kotest.core.spec.Isolate
+import io.kotest.core.spec.Spec
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.engine.KotestEngineLauncher
 import io.kotest.engine.listener.TestEngineListener
@@ -13,6 +13,9 @@ import kotlinx.coroutines.delay
 @Isolate
 class ProjectTimeoutTest : FunSpec({
    val listener = object : TestEngineListener {
+      override fun specInstantiated(spec: Spec) {
+         super.specInstantiated(spec)
+      }
       override fun engineFinished(t: List<Throwable>) {
 
       }
@@ -38,7 +41,6 @@ class ProjectTimeoutTest : FunSpec({
    }
 })
 
-@Ignored
 internal class SpecWithTestsUnderTimeout : FunSpec({
    test("1: a test under the test level timeout") {
       delay(500)
