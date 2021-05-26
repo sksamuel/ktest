@@ -16,3 +16,7 @@ end_of_line = crlf
 
 [*.md]
 indent_size = 2
+
+[*.kt]
+ij_kotlin_name_count_to_use_star_import = 99
+ij_kotlin_name_count_to_use_star_import_for_members = 99

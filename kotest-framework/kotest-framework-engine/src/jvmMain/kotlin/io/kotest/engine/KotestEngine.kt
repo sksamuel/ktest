@@ -57,14 +57,14 @@ class KotestEngine(private val config: KotestEngineConfig) {
       val innerExecute: suspend (TestSuite, TestEngineListener) -> EngineResult =
          { ts, tel -> executeTestSuite(ts, tel) }
 
-      val extensions = listOfNotNull(
+      val engineExtensions = listOfNotNull(
          KotestPropertiesExtension,
          TestDslStateExtensions,
          if (config.dumpConfig) DumpConfigExtension(configuration) else null,
          if (configuration.failOnEmptyTestSuite) EmptyTestSuiteExtension else null,
       )
 
-      val execute = extensions.foldRight(innerExecute) { extension, next ->
+      val execute = engineExtensions.foldRight(innerExecute) { extension, next ->
          { ts, tel -> extension.intercept(ts, tel, next) }
       }
 
@@ -85,35 +85,14 @@ class KotestEngine(private val config: KotestEngineConfig) {
       if (allErrors.isNotEmpty())
          return EngineResult(allErrors)
 
-      val projectExtensions = configuration.extensions().filterIsInstance<ProjectExtension>()
-      val projectErrors = mutableListOf<Throwable>()
-      runProjectExtensions(projectExtensions, projectErrors) {
-         val submissionError = submitAll(suite, listener).errorOrNull()
-         if (submissionError != null) {
-            projectErrors.add(submissionError)
-         }
-      }
+      val extensions = configuration.extensions().filterIsInstance<ProjectExtension>()
+      val initial: suspend () -> Throwable? = { submitAll(suite, listener).errorOrNull() }
+
+      val error = extensions.foldRight(initial) { extension, acc -> { extension.aroundProject(acc) } }.invoke()
 
       // after project listeners are executed even if the submission fails and the errors are added together
       val afterErrors = configuration.listeners().afterProject().getOrElse { emptyList() }
-      return EngineResult(projectErrors + afterErrors)
-   }
-
-   private tailrec suspend fun runProjectExtensions(extensions: List<ProjectExtension>, errors: MutableList<Throwable>, f: suspend () -> Unit) {
-      return if (extensions.isEmpty())
-         f()
-      else {
-         val head = extensions.first()
-         val tail = extensions.drop(1)
-
-         runProjectExtensions(tail, errors) {
-            try {
-                head.aroundProject(f)
-            } catch (e: Throwable) {
-               errors.add(e)
-            }
-         }
-      }
+      return EngineResult(listOfNotNull(error) + afterErrors)
    }
 
    fun cleanup() {
