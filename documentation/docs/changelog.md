@@ -11,6 +11,7 @@ slug: changelog.html
 * `Arb.values` has been removed. This was deprecated back in 4.3 in favour of `Arb.sample`. Any custom arbs that override this method should be updated. Any custom arbs that use the `arbitrary` builders are not affected.
 * The Engine no longer logs config to the console during start **by default**. To enable, set the system property `kotest.framework.dump.config` to true.
 * Removed deprecated `shouldReceiveWithin` and `shouldReceiveNoElementsWithin` channel matchers.
+* `equalJson` has an added parameter to support the new `shouldEqualSpecifiedJson` assertion
 
 #### Fixes
 
@@ -21,6 +22,7 @@ slug: changelog.html
 #### Improvements
 
 * Unfinished tests now error
+* Added `shouldEqualSpecifiedJson` to match a JSON structure on a subset of (specified) keys.
 
 ### 4.6.0 May 2021
 

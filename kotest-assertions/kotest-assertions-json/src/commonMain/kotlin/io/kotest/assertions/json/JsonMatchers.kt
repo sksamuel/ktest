@@ -59,12 +59,22 @@ fun matchJson(expected: String?) = object : Matcher<String?> {
  */
 fun String.shouldEqualJson(expected: String, mode: CompareMode, order: CompareOrder) {
    val (e, a) = parse(expected, this)
-   a should equalJson(e, mode, order)
+   a should equalJson(e, mode, order, FieldComparison.All)
 }
 
 fun String.shouldNotEqualJson(expected: String, mode: CompareMode, order: CompareOrder) {
    val (e, a) = parse(expected, this)
-   a shouldNot equalJson(e, mode, order)
+   a shouldNot equalJson(e, mode, order, FieldComparison.All)
+}
+
+fun String.shouldEqualSpecifiedJson(expected: String, mode: CompareMode, order: CompareOrder) {
+   val (e,a) = parse(expected, this)
+   a should equalJson(e, mode, order, FieldComparison.IgnoringUnspecified)
+}
+
+fun String.shouldNotEqualJsonIgnoringUnknown(expected: String, mode: CompareMode, order: CompareOrder) {
+   val (e,a) = parse(expected, this)
+   a shouldNot equalJson(e, mode, order, FieldComparison.IgnoringUnspecified)
 }
 
 internal fun parse(expected: String, actual: String): Pair<JsonTree, JsonTree> {
