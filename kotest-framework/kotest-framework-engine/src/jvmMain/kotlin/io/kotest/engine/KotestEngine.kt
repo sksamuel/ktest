@@ -8,12 +8,7 @@ import io.kotest.core.spec.Spec
 import io.kotest.core.spec.afterProject
 import io.kotest.core.spec.beforeProject
 import io.kotest.engine.config.ConfigManager
-import io.kotest.engine.extensions.DumpConfigExtension
-import io.kotest.engine.extensions.EmptyTestSuiteExtension
-import io.kotest.engine.extensions.EngineExtension
-import io.kotest.engine.extensions.KotestPropertiesExtension
-import io.kotest.engine.extensions.SpecifiedTagsTagExtension
-import io.kotest.engine.extensions.TestDslStateExtensions
+import io.kotest.engine.extensions.*
 import io.kotest.engine.launchers.specLauncher
 import io.kotest.engine.listener.TestEngineListener
 import io.kotest.engine.script.ScriptExecutor
@@ -22,6 +17,7 @@ import io.kotest.engine.spec.sort
 import io.kotest.fp.Try
 import io.kotest.fp.getOrElse
 import io.kotest.mpp.log
+import kotlinx.coroutines.withTimeout
 import kotlin.reflect.KClass
 import kotlin.script.templates.standard.ScriptTemplateWithArgs
 
@@ -107,30 +103,32 @@ class KotestEngine(private val config: KotestEngineConfig) {
     * or returns an failure if an unexpected (not test failure) error occured.
     */
    private suspend fun submitAll(suite: TestSuite, listener: TestEngineListener): Try<Unit> = Try {
-      log { "KotestEngine: Beginning test plan [specs=${suite.classes.size}, scripts=${suite.scripts.size}, parallelism=${configuration.parallelism}}]" }
+      withTimeout(configuration.projectTimeout) {
+         log { "KotestEngine: Beginning test plan [specs=${suite.classes.size}, scripts=${suite.scripts.size}, parallelism=${configuration.parallelism}}]" }
 
-      // scripts always run sequentially
-      log { "KotestEngine: Launching ${suite.scripts.size} scripts" }
-      if (suite.scripts.isNotEmpty()) {
-         suite.scripts.forEach { scriptKClass ->
-            log { scriptKClass.java.methods.toList().toString() }
-            ScriptExecutor(listener)
-               .execute(scriptKClass)
+         // scripts always run sequentially
+         log { "KotestEngine: Launching ${suite.scripts.size} scripts" }
+         if (suite.scripts.isNotEmpty()) {
+            suite.scripts.forEach { scriptKClass ->
+               log { scriptKClass.java.methods.toList().toString() }
+               ScriptExecutor(listener)
+                  .execute(scriptKClass)
+            }
+            log { "KotestEngine: Script execution completed" }
          }
-         log { "KotestEngine: Script execution completed" }
+
+         // spec classes are ordered using an instance of SpecExecutionOrder
+         log { "KotestEngine: Sorting specs by ${configuration.specExecutionOrder}" }
+         val ordered = suite.classes.sort(configuration.specExecutionOrder)
+
+         val executor = SpecExecutor(listener)
+         log { "KotestEngine: Will use spec executor $executor" }
+
+         val launcher = specLauncher()
+         log { "KotestEngine: Will use spec launcher $launcher" }
+
+         launcher.launch(executor, ordered)
       }
-
-      // spec classes are ordered using an instance of SpecExecutionOrder
-      log { "KotestEngine: Sorting specs by ${configuration.specExecutionOrder}" }
-      val ordered = suite.classes.sort(configuration.specExecutionOrder)
-
-      val executor = SpecExecutor(listener)
-      log { "KotestEngine: Will use spec executor $executor" }
-
-      val launcher = specLauncher()
-      log { "KotestEngine: Will use spec launcher $launcher" }
-
-      launcher.launch(executor, ordered)
    }
 
    private fun notifyResult(result: EngineResult) {

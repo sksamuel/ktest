@@ -14,6 +14,7 @@ fun Configuration.createConfigSummary(): String {
    sb.buildOutput("Dispatcher affinity", dispatcherAffinity.toString())
    sb.buildOutput("Default test timeout", timeout.toString() + "ms")
    sb.buildOutput("Default test order", testCaseOrder.name)
+   sb.buildOutput("Overall project timeout", projectTimeout.toString() + "ms") // TODO: make duration when kotlin.time stabilizes
    sb.buildOutput("Default isolation mode", isolationMode.name)
    sb.buildOutput("Global soft assertions", globalAssertSoftly.toString())
    sb.buildOutput("Write spec failure file", writeSpecFailureFile.toString())

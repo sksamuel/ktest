@@ -52,6 +52,7 @@ data class DetectedProjectConfig(
    val testNameRemoveWhitespace: Option<Boolean> = Option.None,
    val testNameAppendTags: Option<Boolean> = Option.None,
    val duplicateTestNameMode: Option<DuplicateTestNameMode> = Option.None,
+   val projectTimeout: Option<Long> = Option.None,
 )
 
 fun DetectedProjectConfig.merge(other: DetectedProjectConfig): DetectedProjectConfig {
@@ -81,6 +82,7 @@ fun DetectedProjectConfig.merge(other: DetectedProjectConfig): DetectedProjectCo
       testNameRemoveWhitespace = this.testNameRemoveWhitespace.orElse(other.testNameRemoveWhitespace),
       testNameAppendTags = this.testNameAppendTags.orElse(other.testNameAppendTags),
       duplicateTestNameMode = this.duplicateTestNameMode.orElse(other.duplicateTestNameMode),
+      projectTimeout = this.projectTimeout.orElse(other.projectTimeout),
    )
 }
 
@@ -118,6 +120,7 @@ fun DetectedProjectConfig.apply(configuration: Configuration) {
    // timeout options
    timeout.forEach { configuration.timeout = it }
    invocationTimeout.forEach { configuration.invocationTimeout = it }
+   projectTimeout.forEach { configuration.projectTimeout = it }
 
    // naming/display options
    includeTestScopeAffixes.forEach { configuration.includeTestScopeAffixes = it }

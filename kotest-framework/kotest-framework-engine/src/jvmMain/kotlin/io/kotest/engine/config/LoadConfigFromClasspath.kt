@@ -59,6 +59,7 @@ private fun AbstractProjectConfig.toDetectedConfig(): DetectedProjectConfig {
       duplicateTestNameMode = duplicateTestNameMode.toOption(),
       testNameCase = testNameCase.toOption(),
       testNameRemoveWhitespace = testNameRemoveWhitespace.toOption(),
-      testNameAppendTags = testNameAppendTags.toOption()
+      testNameAppendTags = testNameAppendTags.toOption(),
+      projectTimeout = projectTimeout.toOption().map { it.toLongMilliseconds() },
    )
 }

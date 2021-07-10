@@ -197,6 +197,13 @@ class Configuration {
    var invocationTimeout: Long = Defaults.defaultInvocationTimeoutInMillis
 
    /**
+    * A timeout that is applied to the overall project if not null,
+    * if the sum duration of all the tests exceeds this the suite will fail.
+    * TODO: make this a [kotlin.time.Duration] when that API stabilizes
+    */
+   var projectTimeout: Long = Long.MAX_VALUE
+
+   /**
     * Returns the default [TestCaseConfig] to be assigned to tests when not specified either in
     * the spec, test factory, or test case itself.
     *
