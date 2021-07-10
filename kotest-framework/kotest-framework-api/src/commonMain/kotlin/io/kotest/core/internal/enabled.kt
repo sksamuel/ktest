@@ -57,7 +57,7 @@ suspend fun TestCase.isEnabled(): Enabled {
  *
  * Note: tags are defined either through [TestCaseConfig] or in the [Spec] dsl.
  */
-fun TestCase.isEnabledInternal(): Enabled {
+suspend fun TestCase.isEnabledInternal(): Enabled {
 
    // this sys property disables the use of !
    // when it's not set, then we use ! to disable tests

@@ -20,7 +20,7 @@ import kotlin.coroutines.CoroutineContext
 /**
  * Note: we need to use this: https://youtrack.jetbrains.com/issue/KT-22228
  */
-internal fun executeSpec(spec: Spec) {
+internal suspend fun executeSpec(spec: Spec) {
    spec.materializeAndOrderRootTests()
       .filter { it.testCase.isEnabledInternal().isEnabled }
       .forEach { root ->
