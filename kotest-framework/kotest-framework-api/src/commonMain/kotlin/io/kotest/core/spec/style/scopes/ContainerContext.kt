@@ -7,6 +7,7 @@ import io.kotest.core.test.TestCase
 import io.kotest.core.test.TestContext
 import io.kotest.core.test.TestResult
 import io.kotest.core.test.TestType
+import kotlin.coroutines.CoroutineContext
 
 @Deprecated("Use ContainerContext. This alias will be removed in 4.8")
 typealias ContainerScope = ContainerContext
@@ -144,4 +145,9 @@ interface ContainerContext : TestContext {
          }
       })
    }
+}
+
+abstract class AbstractContainerContext(testContext: TestContext) : ContainerContext {
+   override val testCase: TestCase = testContext.testCase
+   override val coroutineContext: CoroutineContext = testContext.coroutineContext
 }

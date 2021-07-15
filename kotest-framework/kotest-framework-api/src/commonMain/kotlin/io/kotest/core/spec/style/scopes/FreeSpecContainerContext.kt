@@ -33,10 +33,8 @@ typealias FreeScope = FreeSpecContainerContext
 
 class FreeSpecContainerContext(
    val testContext: TestContext,
-) : ContainerContext {
+) : AbstractContainerContext(testContext) {
 
-   override val testCase: TestCase = testContext.testCase
-   override val coroutineContext: CoroutineContext = testContext.coroutineContext
    override suspend fun registerTestCase(nested: NestedTest) = testContext.registerTestCase(nested)
 
    override suspend fun addTest(name: String, type: TestType, test: suspend TestContext.() -> Unit) {

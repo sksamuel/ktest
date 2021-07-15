@@ -57,6 +57,9 @@ include("kotest-property")
 // property test generators for kotlinx.datetime
 include("kotest-property:kotest-property-datetime")
 
+// contains  extensions for property testing that build on the kotest test framework
+include("kotest-property:kotest-property-lifecycle")
+
 // support for executing tests via junit platform through gradle
 // this will also bring in the required libs for the intellij plugin
 include("kotest-runner:kotest-runner-junit5")
