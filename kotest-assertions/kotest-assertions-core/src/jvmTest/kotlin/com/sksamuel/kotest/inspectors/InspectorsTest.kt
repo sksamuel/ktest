@@ -4,7 +4,13 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.inspectors.*
+import io.kotest.matchers.collections.inspectors.shouldAll
+import io.kotest.matchers.collections.inspectors.shouldNotContain
+import io.kotest.matchers.collections.inspectors.shouldContain
+import io.kotest.matchers.collections.inspectors.shouldContainAtLeastOne
+import io.kotest.matchers.collections.inspectors.shouldContainAtMostOne
+import io.kotest.matchers.collections.inspectors.shouldContainOne
+import io.kotest.matchers.collections.inspectors.shouldContainSome
 import io.kotest.matchers.comparables.beGreaterThan
 import io.kotest.matchers.comparables.beLessThan
 import io.kotest.matchers.ints.shouldBeGreaterThan
@@ -26,18 +32,18 @@ class InspectorsTest : WordSpec() {
 
       "forAll" should {
          "pass if all elements of an array pass" {
-            array.forAll {
+            array.shouldAll {
                it.shouldBeGreaterThan(0)
             }
          }
          "pass if all elements of a collection pass" {
-            list.forAll {
+            list.shouldAll {
                it.shouldBeGreaterThan(0)
             }
          }
          "fail when an exception is thrown inside an array" {
             shouldThrowAny {
-               array.forAll {
+               array.shouldAll {
                   if (true) throw NullPointerException()
                }
             }.message shouldBe "0 elements passed but expected 5\n" +
@@ -54,7 +60,7 @@ class InspectorsTest : WordSpec() {
          }
          "fail when an exception is thrown inside a list" {
             shouldThrowAny {
-               list.forAll {
+               list.shouldAll {
                   if (true) throw NullPointerException()
                }
             }.message shouldBe "0 elements passed but expected 5\n" +
@@ -73,24 +79,24 @@ class InspectorsTest : WordSpec() {
 
       "forNone" should {
          "pass if no elements pass fn test for a list" {
-            list.forNone {
+            list.shouldNotContain {
                it shouldBe 10
             }
          }
          "pass if no elements pass fn test for an array" {
-            array.forNone {
+            array.shouldNotContain {
                it shouldBe 10
             }
          }
          "pass if an element throws an exception" {
             val items = listOf(1, 2, 3)
-            items.forNone {
+            items.shouldNotContain {
                if (true) throw NullPointerException()
             }
          }
          "fail if one elements passes fn test" {
             shouldThrow<AssertionError> {
-               list.forNone {
+               list.shouldNotContain {
                   it shouldBe 4
                }
             }.message shouldBe """1 elements passed but expected 0
@@ -106,7 +112,7 @@ The following elements failed:
          }
          "fail if all elements pass fn test" {
             shouldThrow<AssertionError> {
-               list.forNone {
+               list.shouldNotContain {
                   it should beGreaterThan(0)
                }
             }.message shouldBe """5 elements passed but expected 0
@@ -128,7 +134,7 @@ The following elements failed:
             )
 
             assertSoftly(dummyEntries) {
-               forNone {
+               shouldNotContain {
                   it.id shouldBe 3
                   it.name shouldBe "third"
                }
@@ -138,18 +144,18 @@ The following elements failed:
 
       "forSome" should {
          "pass if one elements pass test"  {
-            list.forSome {
+            list.shouldContainSome {
                it shouldBe 3
             }
          }
          "pass if size-1 elements pass test"  {
-            list.forSome {
+            list.shouldContainSome {
                it should beGreaterThan(1)
             }
          }
          "fail if no elements pass test"  {
             shouldThrow<AssertionError> {
-               array.forSome {
+               array.shouldContainSome {
                   it should beLessThan(0)
                }
             }.message shouldBe """No elements passed but expected at least one
@@ -166,7 +172,7 @@ The following elements failed:
          }
          "fail if all elements pass test"  {
             shouldThrow<AssertionError> {
-               list.forSome {
+               list.shouldContainSome {
                   it should beGreaterThan(0)
                }
             }.message shouldBe """All elements passed but expected < 5
@@ -189,7 +195,7 @@ The following elements failed:
             )
 
             assertSoftly(dummyEntries) {
-               forSome {
+               shouldContainSome {
                   it.id shouldBe 1
                   it.name shouldBe "first"
                }
@@ -199,13 +205,13 @@ The following elements failed:
 
       "forOne" should {
          "pass if one elements pass test"  {
-            list.forOne {
+            list.shouldContainOne {
                it shouldBe 3
             }
          }
          "fail if > 1 elements pass test"  {
             shouldThrow<AssertionError> {
-               list.forOne {
+               list.shouldContainOne {
                   it should beGreaterThan(2)
                }
             }.message shouldBe """3 elements passed but expected 1
@@ -221,7 +227,7 @@ The following elements failed:
          }
          "fail if no elements pass test"  {
             shouldThrow<AssertionError> {
-               array.forOne {
+               array.shouldContainOne {
                   it shouldBe 22
                }
             }.message shouldBe """0 elements passed but expected 1
@@ -243,7 +249,7 @@ The following elements failed:
             )
 
             assertSoftly(dummyEntries) {
-               forOne {
+               shouldContainOne {
                   it.id shouldBe 1
                   it.name shouldBe "first"
                }
@@ -253,18 +259,18 @@ The following elements failed:
 
       "forAny" should {
          "pass if one elements pass test"  {
-            list.forAny {
+            list.shouldContainAtLeastOne {
                it shouldBe 3
             }
          }
          "pass if at least elements pass test"  {
-            list.forAny {
+            list.shouldContainAtLeastOne {
                it should beGreaterThan(2)
             }
          }
          "fail if no elements pass test"  {
             shouldThrow<AssertionError> {
-               array.forAny {
+               array.shouldContainAtLeastOne {
                   it shouldBe 6
                }
             }.message shouldBe """0 elements passed but expected at least 1
@@ -286,7 +292,7 @@ The following elements failed:
             )
 
             assertSoftly(dummyEntries) {
-               forAny {
+               shouldContainAtLeastOne {
                   it.id shouldBe 1
                   it.name shouldBe "first"
                }
@@ -296,13 +302,13 @@ The following elements failed:
 
       "forExactly" should {
          "pass if exactly k elements pass"  {
-            list.forExactly(2) {
+            list.shouldContain(2) {
                it should beLessThan(3)
             }
          }
          "fail if more elements pass test"  {
             shouldThrow<AssertionError> {
-               list.forExactly(2) {
+               list.shouldContain(2) {
                   it should beGreaterThan(2)
                }
             }.message shouldBe """3 elements passed but expected 2
@@ -318,7 +324,7 @@ The following elements failed:
          }
          "fail if less elements pass test"  {
             shouldThrow<AssertionError> {
-               array.forExactly(2) {
+               array.shouldContain(2) {
                   it should beLessThan(2)
                }
             }.message shouldBe """1 elements passed but expected 2
@@ -334,7 +340,7 @@ The following elements failed:
          }
          "fail if no elements pass test"  {
             shouldThrow<AssertionError> {
-               array.forExactly(2) {
+               array.shouldContain(2) {
                   it shouldBe 33
                }
             }.message shouldBe """0 elements passed but expected 2
@@ -359,7 +365,7 @@ The following elements failed:
             )
 
             assertSoftly(dummyEntries) {
-               forAtMostOne {
+               shouldContainAtMostOne {
                   it.id shouldBe 1
                   it.name shouldBe "first"
                }
@@ -375,7 +381,7 @@ The following elements failed:
             )
 
             assertSoftly(dummyEntries) {
-               forAtLeastOne {
+               shouldContainAtLeastOne {
                   it.id shouldBe 1
                   it.name shouldBe "first"
                }

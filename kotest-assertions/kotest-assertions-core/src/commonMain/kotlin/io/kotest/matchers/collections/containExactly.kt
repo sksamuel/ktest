@@ -14,7 +14,6 @@ fun <T> Iterable<T>?.shouldContainExactly(vararg expected: T) = this?.toList() s
 fun <T> Array<T>?.shouldContainExactly(vararg expected: T) = this?.asList() should containExactly(*expected)
 
 infix fun <T, C : Collection<T>> C?.shouldContainExactly(expected: C) = this should containExactly(expected)
-fun <T> Collection<T>?.shouldContainExactly(vararg expected: T) = this should containExactly(*expected)
 
 fun <T> containExactly(vararg expected: T): Matcher<Collection<T>?> = containExactly(expected.asList())
 
