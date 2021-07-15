@@ -9,30 +9,31 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.Period
+import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 
 @Suppress("UNCHECKED_CAST")
-actual inline fun <reified A> targetDefaultForClass(): Arb<A>? {
+actual fun <A : Any> targetDefaultForClass(kclass: KClass<A>): Arb<A>? {
    return when {
-      A::class.isSubclassOf(List::class) -> {
+      kclass.isSubclassOf(List::class) -> {
          val type = object : TypeReference<A>() {}.type as ParameterizedType
          val first = type.actualTypeArguments.first() as WildcardType
          val upper = first.upperBounds.first() as Class<*>
          Arb.list(defaultForClass<Any>(upper.kotlin) as Arb<Any>) as Arb<A>
       }
-      A::class.isSubclassOf(Set::class) -> {
+      kclass.isSubclassOf(Set::class) -> {
          val type = object : TypeReference<A>() {}.type as ParameterizedType
          val first = type.actualTypeArguments.first() as WildcardType
          val upper = first.upperBounds.first() as Class<*>
          Arb.set(defaultForClass<Any>(upper.kotlin) as Arb<Any>) as Arb<A>
       }
-      A::class.isSubclassOf(Pair::class) -> {
+      kclass.isSubclassOf(Pair::class) -> {
          val type = object : TypeReference<A>() {}.type as ParameterizedType
          val first = (type.actualTypeArguments[0] as WildcardType).upperBounds.first() as Class<*>
          val second = (type.actualTypeArguments[1] as WildcardType).upperBounds.first() as Class<*>
          Arb.pair(defaultForClass<Any>(first.kotlin)!!, defaultForClass<Any>(second.kotlin)!!) as Arb<A>
       }
-      A::class.isSubclassOf(Map::class) -> {
+      kclass.isSubclassOf(Map::class) -> {
          val type = object : TypeReference<A>() {}.type as ParameterizedType
          // map key type can have or have not variance
          val first = if (type.actualTypeArguments[0] is Class<*>) {
@@ -43,11 +44,12 @@ actual inline fun <reified A> targetDefaultForClass(): Arb<A>? {
          val second = (type.actualTypeArguments[1] as WildcardType).upperBounds.first() as Class<*>
          Arb.map(defaultForClass<Any>(first.kotlin)!!, defaultForClass<Any>(second.kotlin)!!) as Arb<A>
       }
-      A::class == LocalDate::class -> Arb.localDate() as Arb<A>
-      A::class == LocalDateTime::class -> Arb.localDateTime() as Arb<A>
-      A::class == LocalTime::class -> Arb.localTime() as Arb<A>
-      A::class == Period::class -> Arb.period() as Arb<A>
-      A::class == BigDecimal::class -> Arb.bigDecimal() as Arb<A>
+      kclass == LocalDate::class -> Arb.localDate() as Arb<A>
+      kclass == LocalDateTime::class -> Arb.localDateTime() as Arb<A>
+      kclass == LocalTime::class -> Arb.localTime() as Arb<A>
+      kclass == Period::class -> Arb.period() as Arb<A>
+      kclass == BigDecimal::class -> Arb.bigDecimal() as Arb<A>
+      kclass.isData -> Arb.bind(kclass)
       else -> null
    }
 }

@@ -53,7 +53,7 @@ suspend inline fun <reified A> checkAll(
    noinline property: suspend PropertyContext.(A) -> Unit
 ): PropertyContext = proptest(
    PropertyTesting.defaultIterationCount,
-   Arb.default<A>(),
+   Arb.default(),
    PropTestConfig(),
    property
 )
@@ -63,7 +63,7 @@ suspend inline fun <reified A> checkAll(
    noinline property: suspend PropertyContext.(A) -> Unit
 ): PropertyContext = proptest(
    iterations,
-   Arb.default<A>(),
+   Arb.default(),
    PropTestConfig(),
    property
 )
@@ -79,7 +79,7 @@ suspend inline fun <reified A> checkAll(
    noinline property: suspend PropertyContext.(A) -> Unit
 ): PropertyContext = proptest(
    iterations,
-   Arb.default<A>(),
+   Arb.default(),
    config,
    property
 )
@@ -138,11 +138,11 @@ suspend inline fun <reified A> forAll(
    crossinline property: PropertyContext.(A) -> Boolean
 ) = forAll(PropertyTesting.defaultIterationCount, config, property)
 
-suspend inline fun <reified A> forAll(
+suspend inline fun <reified A : Any> forAll(
    iterations: Int,
    config: PropTestConfig,
    crossinline property: PropertyContext.(A) -> Boolean
-) = proptest<A>(
+) = proptest(
    iterations,
    Arb.default<A>(),
    config
@@ -206,11 +206,11 @@ suspend inline fun <reified A> forNone(
    crossinline property: PropertyContext.(A) -> Boolean
 ) = forNone(PropertyTesting.defaultIterationCount, config, property)
 
-suspend inline fun <reified A> forNone(
+suspend inline fun <reified A : Any> forNone(
    iterations: Int,
    config: PropTestConfig,
    crossinline property: PropertyContext.(A) -> Boolean
-) = proptest<A>(
+) = proptest(
    iterations,
    Arb.default<A>(),
    config

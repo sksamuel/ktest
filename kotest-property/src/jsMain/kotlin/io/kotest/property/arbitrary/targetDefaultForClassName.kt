@@ -1,6 +1,7 @@
 package io.kotest.property.arbitrary
 
 import io.kotest.property.Arb
+import kotlin.reflect.KClass
 
 @Suppress("NOTHING_TO_INLINE")
-actual inline fun <A> targetDefaultForClass(): Arb<A>? = null
+actual fun <A : Any> targetDefaultForClass(kclass: KClass<A>): Arb<A>? = null

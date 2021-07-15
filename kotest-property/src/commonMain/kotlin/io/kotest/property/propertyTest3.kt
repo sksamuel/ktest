@@ -212,7 +212,7 @@ suspend inline fun <reified A, reified B, reified C> forNone(
    crossinline property: PropertyContext.(A, B, C) -> Boolean
 ) = forNone(iterations, PropTestConfig(), property)
 
-suspend inline fun <reified A, reified B, reified C> forNone(
+suspend inline fun <reified A : Any, reified B : Any, reified C : Any> forNone(
    iterations: Int,
    config: PropTestConfig,
    crossinline property: PropertyContext.(A, B, C) -> Boolean
