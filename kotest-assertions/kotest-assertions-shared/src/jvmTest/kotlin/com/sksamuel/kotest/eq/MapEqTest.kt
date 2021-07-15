@@ -6,6 +6,8 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import org.opentest4j.AssertionFailedError
 
 class MapEqTest : FunSpec({
    test("should give null for simple equal maps") {
@@ -15,23 +17,20 @@ class MapEqTest : FunSpec({
    }
 
    test("should give error for simple not equal maps") {
-      val map1 = mapOf("a" to "b")
-      val map2 = mapOf("a" to "c")
+      val map1 = mapOf("a" to "actual")
+      val map2 = mapOf("a" to "expected")
 
       val throwable = MapEq.equals(map1, map2)
 
       assertSoftly {
-         throwable.shouldNotBeNull()
+         throwable.shouldBeInstanceOf<AssertionFailedError>()
          throwable.message shouldBe """
-            Expected
-            {
-              "a" = "c"
-            }
-            to be equal to
-            {
-              "a" = "b"
-            }
             Values differed at keys a
+            expected:<{
+              "a" = "expected"
+            }> but was:<{
+              "a" = "actual"
+            }>
          """.trimIndent()
       }
    }
@@ -88,15 +87,12 @@ class MapEqTest : FunSpec({
       assertSoftly {
          throwable.shouldNotBeNull()
          throwable.message shouldBe """
-            Expected
-            {
-              "1" = [("2", [("3", "bar")])]
-            }
-            to be equal to
-            {
-              "1" = [("2", [("3", [("4", ["foo"])])])]
-            }
             Values differed at keys 1
+            expected:<{
+              "1" = [("2", [("3", "bar")])]
+            }> but was:<{
+              "1" = [("2", [("3", [("4", ["foo"])])])]
+            }>
          """.trimIndent()
       }
    }
@@ -132,15 +128,12 @@ class MapEqTest : FunSpec({
       assertSoftly {
          throwable.shouldNotBeNull()
          throwable.message shouldBe """
-            Expected
-            {
-              [("a", "c")] = [("a", [1, 2, 3])]
-            }
-            to be equal to
-            {
-              [("a", "b")] = [("a", [1, 2, 3])]
-            }
             Values differed at keys {a=b}
+            expected:<{
+              [("a", "c")] = [("a", [1, 2, 3])]
+            }> but was:<{
+              [("a", "b")] = [("a", [1, 2, 3])]
+            }>
          """.trimIndent()
       }
    }
