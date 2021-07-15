@@ -2,16 +2,12 @@ package io.kotest.engine
 
 import io.kotest.core.Tags
 import io.kotest.core.config.configuration
+import io.kotest.core.extensions.ProjectExtension
 import io.kotest.core.filter.SpecFilter
 import io.kotest.core.filter.TestFilter
 import io.kotest.core.spec.Spec
 import io.kotest.engine.config.ConfigManager
-import io.kotest.engine.extensions.DumpConfigExtension
-import io.kotest.engine.extensions.EmptyTestSuiteExtension
-import io.kotest.engine.extensions.EngineExtension
-import io.kotest.engine.extensions.KotestPropertiesExtension
-import io.kotest.engine.extensions.SpecifiedTagsTagExtension
-import io.kotest.engine.extensions.TestDslStateExtensions
+import io.kotest.engine.extensions.*
 import io.kotest.engine.launchers.specLauncher
 import io.kotest.engine.listener.TestEngineListener
 import io.kotest.engine.script.ScriptExecutor
@@ -61,14 +57,14 @@ class KotestEngine(private val config: KotestEngineConfig) {
       val innerExecute: suspend (TestSuite, TestEngineListener) -> EngineResult =
          { ts, tel -> executeTestSuite(ts, tel) }
 
-      val extensions = listOfNotNull(
+      val engineExtensions = listOfNotNull(
          KotestPropertiesExtension,
          TestDslStateExtensions,
          if (config.dumpConfig) DumpConfigExtension(configuration) else null,
          if (configuration.failOnEmptyTestSuite) EmptyTestSuiteExtension else null,
       )
 
-      val execute = extensions.foldRight(innerExecute) { extension, next ->
+      val execute = engineExtensions.foldRight(innerExecute) { extension, next ->
          { ts, tel -> extension.intercept(ts, tel, next) }
       }
 
@@ -88,11 +84,14 @@ class KotestEngine(private val config: KotestEngineConfig) {
       if (beforeErrors.isNotEmpty())
          return EngineResult(beforeErrors)
 
-      val submissionError = submitAll(suite, listener).errorOrNull()
+      val extensions = configuration.extensions().filterIsInstance<ProjectExtension>()
+      val initial: suspend () -> Throwable? = { submitAll(suite, listener).errorOrNull() }
+
+      val error = extensions.foldRight(initial) { extension, acc -> { extension.aroundProject(acc) } }.invoke()
 
       // after project listeners are executed even if the submission fails and the errors are added together
       val afterErrors = configuration.listeners().afterProject().getOrElse { emptyList() }
-      return EngineResult(listOfNotNull(submissionError) + afterErrors)
+      return EngineResult(listOfNotNull(error) + afterErrors)
    }
 
    fun cleanup() {
